@@ -1,0 +1,4 @@
+occurrence_id,behavior_id,local_date,status
+occ_brush_2026-06-09,beh_brush_teeth_evening,2026-06-09,completed
+occ_brush_2026-06-10,beh_brush_teeth_evening,2026-06-10,not_completed
+occ_brush_2026-06-11,beh_brush_teeth_evening,2026-06-11,unresolved

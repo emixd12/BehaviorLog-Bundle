@@ -1,0 +1,138 @@
+{
+  "format": "behaviorlog.bundle",
+  "schema_version": "0.1.0-draft",
+  "exported_at_utc": "2026-06-11T22:00:00Z",
+  "producer": {
+    "name": "SyntheticExample",
+    "version": "0.1.0-draft",
+    "exporter_version": "0.1.0-draft",
+    "website": null
+  },
+  "subject": {
+    "subject_id": "subject_anon_001",
+    "timezone_default": "America/Los_Angeles",
+    "locale": "en-US"
+  },
+  "privacy": {
+    "redaction_level": "standard_redaction",
+    "subject_id_strategy": "pseudonymous",
+    "contains_notes": false,
+    "contains_context": false,
+    "contains_raw_location": false,
+    "contains_health_data": false,
+    "contains_ai_generated_content": false
+  },
+  "profiles": [
+    "core",
+    "edge-cases"
+  ],
+  "rules": {
+    "status_semantics": {
+      "unresolved": "No explicit completion or non-completion decision has been recorded.",
+      "completed": "The occurrence was explicitly completed.",
+      "not_completed": "The occurrence was explicitly marked not completed."
+    },
+    "unresolved_policy": "exclude_from_explicit_adherence",
+    "day_boundary": "local_midnight",
+    "metric_rules": {
+      "rule_explicit_adherence_rate_v1": {
+        "formula": "completed / (completed + not_completed)",
+        "excludes": [
+          "unresolved",
+          "cancelled_occurrences"
+        ]
+      },
+      "rule_resolution_rate_v1": {
+        "formula": "(completed + not_completed) / eligible_occurrences",
+        "excludes": [
+          "cancelled_occurrences"
+        ]
+      },
+      "rule_scheduled_completion_rate_v1": {
+        "formula": "completed / eligible_occurrences",
+        "excludes": [
+          "cancelled_occurrences"
+        ]
+      },
+      "rule_unresolved_rate_v1": {
+        "formula": "unresolved / eligible_occurrences",
+        "excludes": [
+          "cancelled_occurrences"
+        ]
+      },
+      "rule_reminder_response_rate_v1": {
+        "formula": "completions_after_reminder / reminders_delivered",
+        "response_window": "manifest or intervention rule-defined"
+      }
+    },
+    "source_status_mappings": [
+      {
+        "source_status": "done",
+        "mapped_status": "completed",
+        "semantic_confidence": "high"
+      },
+      {
+        "source_status": "not_done",
+        "mapped_status": "not_completed",
+        "semantic_confidence": "high"
+      },
+      {
+        "source_status": "missed",
+        "mapped_status": "unresolved",
+        "semantic_confidence": "ambiguous",
+        "reason": "missed does not prove explicit non-completion"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "schema.json",
+      "media_type": "application/json",
+      "schema_ref": null,
+      "required": true,
+      "sha256": "75d899f9ed749f34cebc77bfef3e436ca6c2a9dd83846d1cd9bafdd813525049"
+    },
+    {
+      "path": "README.md",
+      "media_type": "text/markdown",
+      "schema_ref": null,
+      "required": true,
+      "sha256": "991e0d29854fc87d29f472d8b50fc6b8672b1f9002712846417cc43e7d90ea84"
+    },
+    {
+      "path": "AGENTS.md",
+      "media_type": "text/markdown",
+      "schema_ref": null,
+      "required": true,
+      "sha256": "b4501177d16181a9c0d0fe895dafcf47b9ffb89b14e81c14f79fa1e96cd9480e"
+    },
+    {
+      "path": "data/behaviors.jsonl",
+      "media_type": "application/jsonl",
+      "schema_ref": "#/$defs/Behavior",
+      "required": true,
+      "sha256": "4d1deaddf94ef291e26acb1c5652cdd1427f6861da01c8b67183917016ef2489"
+    },
+    {
+      "path": "data/occurrences.jsonl",
+      "media_type": "application/jsonl",
+      "schema_ref": "#/$defs/Occurrence",
+      "required": true,
+      "sha256": "44886cb96e9491ebbec4e1ba5e900ce2f424d958b4cd67201994a9d8b3efb6a6"
+    },
+    {
+      "path": "data/schedules.jsonl",
+      "media_type": "application/jsonl",
+      "schema_ref": "#/$defs/Schedule",
+      "required": true,
+      "sha256": "2b7099890496bef17ddcffd01075644212866fd6d3827748deb60b213d78a2a7"
+    },
+    {
+      "path": "data/status_events.jsonl",
+      "media_type": "application/jsonl",
+      "schema_ref": "#/$defs/StatusEvent",
+      "required": true,
+      "sha256": "46a97178b48cee3c2fb9157f02d7307b95f8ce7482dec69dc7a9cee350277901"
+    }
+  ]
+}

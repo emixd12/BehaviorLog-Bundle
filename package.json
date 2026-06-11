@@ -1,0 +1,12 @@
+{
+  "name": "behaviorlog-bundle-spec",
+  "version": "0.1.0-draft",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate:basic": "node reference/validate.mjs examples/basic.behaviorlog",
+    "validate:intervention": "node reference/validate.mjs examples/intervention-context.behaviorlog",
+    "validate:edge": "node reference/validate.mjs examples/edge-cases.behaviorlog",
+    "validate:examples": "npm run validate:basic && npm run validate:intervention && npm run validate:edge"
+  }
+}

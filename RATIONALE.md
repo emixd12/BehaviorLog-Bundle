@@ -89,10 +89,14 @@ The standard should be simple enough for small apps and expressive enough for ri
 Examples:
 
 - A simple tracker can export only behaviors, schedules, occurrences, and status events.
-- A reminder-heavy app can add the Intervention Profile.
+- A reminder-heavy app can add the Intervention Profile, including the standing rules that generate its reminders.
+- An app that lets users rename behaviors can add the Definition History Profile so past occurrences stay interpretable.
+- An app that times sessions can add the Time Tracking Profile without turning the core into a quantified-self schema.
 - A context-aware app can add coarse calendar/location/activity snapshots.
 - A research study can add experiment metadata and richer provenance.
 - A clinical app can map to FHIR or Open mHealth without making clinical semantics mandatory for everyone.
+
+The Definition History and Time Tracking profiles came from the first producer parity audit: the reference app was already collecting both and could only export them as app-private raw files. A profile is the difference between data that travels and data that merely leaves.
 
 ## Why agent instructions are inside the bundle
 

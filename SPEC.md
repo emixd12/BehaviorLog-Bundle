@@ -1,7 +1,7 @@
 
 # BehaviorLog Bundle Specification
 
-Version: `0.1.0-draft`  
+Version: `0.2.0-draft`  
 Format identifier: `behaviorlog.bundle`  
 Package extension: `.behaviorlog/` or `.behaviorlog.zip`
 
@@ -17,7 +17,7 @@ A BehaviorLog Bundle is a self-describing export package for behavior-adherence 
 
 The core concern is adherence: whether a person completed a recurring intended behavior, explicitly did not complete it, or has not yet resolved the occurrence.
 
-Adjacent concepts such as reminders, context, reviews, experiments, goals, projects, measurements, and clinical mappings are handled through optional profiles.
+Adjacent concepts such as reminders, reminder rules, definition history, tracked time, context, reviews, experiments, goals, projects, measurements, and clinical mappings are handled through optional profiles.
 
 ## 3. Package forms
 
@@ -50,6 +50,9 @@ Optional files include:
 ```text
 data/notes.jsonl
 data/interventions.jsonl
+data/intervention_rules.jsonl
+data/behavior_definition_events.jsonl
+data/time_sessions.jsonl
 data/context_snapshots.jsonl
 data/reviews.jsonl
 data/derived_metrics.jsonl
@@ -74,6 +77,21 @@ The manifest MUST include:
 - `files`
 
 The manifest SHOULD include hashes for all required files. Writers SHOULD hash optional files when the optional file is included.
+
+The manifest SHOULD include a `profiles` array naming the profiles the bundle uses. Canonical profile identifiers are:
+
+```text
+core
+intervention
+context
+review
+analytics
+definition_history
+time_tracking
+research
+```
+
+Readers MUST ignore unknown profile identifiers. Writers MUST NOT invent alternate spellings for canonical profiles. Notes are part of the optional core surface, not a profile, and do not need a profile identifier.
 
 Each file entry MUST include:
 
@@ -268,6 +286,20 @@ uncategorized
 
 `success_definition` SHOULD be plain language. Applications SHOULD avoid over-modeling open-ended motivations, barriers, implementation intentions, and avoidance descriptions in the core schema. These can be recorded in notes or optional profiles.
 
+Behavior records are current snapshots. `behavior_id` is the stable referent for adherence data; titles, descriptions, categories, and success definitions may change around it. A rename or redefinition changes how past occurrences read.
+
+A manifest MAY declare `rules.definition_history_policy`:
+
+```text
+event_sourced
+untracked
+immutable
+```
+
+`event_sourced` means definition changes are recorded in the Definition History Profile. `untracked` means definitions may have changed without record. `immutable` means the producer does not permit definition edits. When the policy is absent, readers MUST treat it as `untracked`.
+
+A reader MUST NOT assume that current titles, descriptions, categories, or success definitions applied at historical occurrences unless the policy is `immutable` or definition events cover the behavior. Writers that retain definition history SHOULD export the Definition History Profile (section 22) and declare `event_sourced`.
+
 ## 14. Schedule records
 
 `data/schedules.jsonl` contains one `Schedule` record per schedule rule.
@@ -434,7 +466,35 @@ webhook
 other
 ```
 
+Allowed `delivery_status` values are `planned`, `sent`, `delivered`, `failed`, `cancelled`, `suppressed`, and `unknown`. A writer MUST map app-native pre-send states such as `pending`, `queued`, or `scheduled` to `planned`. `pending` is not a valid delivery status.
+
+A `failed` intervention SHOULD include `failure_reason`. `failure_reason` MUST be sanitized before export: it MUST NOT contain push endpoints, subscription keys, tokens, provider secrets, recipient addresses, or message bodies. Writers SHOULD reduce provider errors to short neutral descriptions such as `provider_rejected` or `endpoint_gone`.
+
 Reminder message content SHOULD be excluded by default unless the export profile intentionally includes it. Writers SHOULD prefer `message_variant` and `rule_id`.
+
+### 18.1 Intervention rules
+
+`data/intervention_rules.jsonl` is optional within the Intervention Profile. It records the standing configuration that generates interventions, so a receiving app can rebuild the user's cue setup instead of only replaying past deliveries.
+
+A minimal intervention rule record includes:
+
+```json
+{
+  "record_type": "intervention_rule",
+  "rule_id": "rule_reminder_beh_001_browser",
+  "behavior_id": "beh_001",
+  "intervention_type": "reminder",
+  "channel": "browser_push",
+  "enabled": true,
+  "offset_minutes": -15
+}
+```
+
+`offset_minutes` is a signed integer. The planned delivery instant is the occurrence's scheduled instant plus `offset_minutes` minutes; negative values mean before the occurrence. `behavior_id` MAY be null for subject-global rules.
+
+`active_from_local_date` and `active_until_local_date` MAY bound a rule's lifetime, following the schedule pattern: rule changes SHOULD end the old rule and create a new one.
+
+When `data/intervention_rules.jsonl` is present, an intervention's `rule_id` SHOULD reference a declared rule. Readers MUST NOT treat an unmatched `rule_id` as an error, because rules may also be declared in `manifest.json.rules` or omitted by older writers.
 
 ## 19. Context Profile
 
@@ -478,11 +538,87 @@ Intervention Profile metrics:
 | `reminder_response_rate` | `completions_after_reminder / reminders_delivered` |
 | `intervention_burden_index` | Manifest-declared weighted burden score. |
 
+Time Tracking Profile metrics:
+
+| Metric | Formula |
+|---|---|
+| `tracked_duration_total_seconds` | Sum of derived stopped-session durations in the period. |
+| `tracked_duration_mean_seconds` | Manifest-declared mean of per-occurrence tracked totals. |
+
 A metric record MUST include period boundaries, timezone, included behavior IDs, numerator, denominator, unresolved count where applicable, and rule ID.
 
 Agents MUST NOT compare adherence rates unless denominator rules match.
 
-## 22. Privacy
+## 22. Definition History Profile
+
+`data/behavior_definition_events.jsonl` is optional. It records append-only revisions to a behavior's defining text so that past occurrences remain interpretable after renames and redefinitions. Without it, a reader sees only the current definition and may misread historical data.
+
+A definition event record includes:
+
+```json
+{
+  "record_type": "behavior_definition_event",
+  "event_id": "bde_001",
+  "behavior_id": "beh_001",
+  "event_kind": "revision",
+  "changed_fields": ["title"],
+  "previous": { "title": "Stretch", "description": "Evening stretch." },
+  "next": { "title": "Late stretch", "description": "Evening stretch." },
+  "recorded_at_utc": "2026-03-04T02:10:00Z",
+  "source": { "capture_method": "manual_text", "confidence": "high" }
+}
+```
+
+Required fields are `record_type`, `event_id`, `behavior_id`, `event_kind`, `changed_fields`, `previous`, `next`, `recorded_at_utc`, and `source`.
+
+`event_kind` is `baseline` or `revision`. A baseline records the definition at behavior creation or first tracking: `previous` MUST be null and `changed_fields` lists the fields present in `next`. A revision records a later change: `previous` MUST be an object.
+
+`changed_fields` values are limited to `title`, `description`, `category`, and `success_definition`. `previous` and `next` objects use the same four keys. A revision MUST include every changed field in both `previous` and `next`, and MAY include unchanged fields for context.
+
+Rules:
+
+- Bundles exporting this profile SHOULD declare `rules.definition_history_policy: event_sourced` in the manifest.
+- The first event for a behavior SHOULD be a `baseline`.
+- Events are append-only. A writer MUST NOT rewrite or delete prior definition events.
+- Readers MUST order events by `recorded_at_utc`, then `event_id`.
+- The latest event's `next` values SHOULD match the current behavior record.
+- Historical titles and descriptions can be sensitive. Writers SHOULD disclose that definition history is included, following the same posture as notes.
+- `reason_code`, `local_date`, `timezone`, and `utc_offset_at_event` are optional.
+
+Category and schedule changes are not definition events. Schedule history uses the schedule end-and-recreate pattern in section 14.
+
+## 23. Time Tracking Profile
+
+`data/time_sessions.jsonl` is optional. It records elapsed-time sessions a user tracked against occurrences: focused work, practice time, or any start/stop measurement of actually doing the behavior.
+
+A time session record includes:
+
+```json
+{
+  "record_type": "time_session",
+  "session_id": "ts_001",
+  "occurrence_id": "occ_001",
+  "behavior_id": "beh_001",
+  "started_at_utc": "2026-06-12T04:30:10Z",
+  "stopped_at_utc": "2026-06-12T04:41:02Z",
+  "timezone": "America/Los_Angeles"
+}
+```
+
+Required fields are `record_type`, `session_id`, `occurrence_id`, `behavior_id`, `started_at_utc`, and `stopped_at_utc`. `stopped_at_utc` MUST be null for a session still running at export time.
+
+Rules:
+
+- Duration is derived as `stopped_at_utc - started_at_utc`. A writer MUST NOT store a duration field; storing both an interval and a duration invites contradiction.
+- `stopped_at_utc` MUST NOT precede `started_at_utc`.
+- An occurrence MAY have multiple stopped sessions. An occurrence SHOULD have at most one running session.
+- Readers MUST NOT count running sessions toward tracked-time totals unless they state that choice.
+- Time sessions are effort measurements, not completion decisions. A reader MUST NOT infer `completed` from the presence of sessions.
+- `local_date` MAY state the behavioral day the session counts toward; it SHOULD default to the occurrence's `local_date`.
+
+Exact session timestamps reveal activity patterns. Time sessions MUST be excluded from exports unless the user or implementer explicitly opts in. When the file is present, `manifest.json.privacy.contains_time_tracking` SHOULD be true.
+
+## 24. Privacy
 
 Every bundle MUST declare a privacy profile in `manifest.json.privacy.redaction_level`.
 
@@ -498,7 +634,9 @@ migration_only
 
 The default recommended export is `standard_redaction`. Subject identity SHOULD be pseudonymous by default.
 
-## 23. Reader behavior
+The privacy declaration includes boolean content flags. `contains_time_tracking` SHOULD be present and true when `data/time_sessions.jsonl` is included.
+
+## 25. Reader behavior
 
 A conforming reader MUST:
 
@@ -513,7 +651,7 @@ A conforming reader MUST:
 9. Ignore unknown optional extensions unless declared required.
 10. Report privacy labels before exposing sensitive data.
 
-## 24. Writer behavior
+## 26. Writer behavior
 
 A conforming writer MUST:
 
@@ -526,9 +664,9 @@ A conforming writer MUST:
 7. Include a self-contained `schema.json`.
 8. Emit an app-neutral vocabulary, with app-specific terms only in mappings or source fields.
 
-## 25. Non-goals for v0.1
+## 27. Non-goals
 
-Core v0.1 does not define:
+The core does not define:
 
 - Medical dosing semantics
 - Clinical adherence claims

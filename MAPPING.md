@@ -5,22 +5,37 @@ This document sketches mappings between BehaviorLog Bundle and adjacent standard
 
 ## Cadence-style apps
 
-A simple Cadence-like tracker maps cleanly to the core.
+Cadence is the reference producer. Its internal status-event table mirrors the StatusEvent record one-to-one, so the core loop maps directly. The richer surfaces map as follows.
 
 | Cadence concept | BehaviorLog concept |
 |---|---|
 | Behavior | Behavior |
-| Recurrence rule | Schedule |
+| Category (display name) | `behavior.category` canonical value; display name and category ID under extensions |
+| Schedule (recurrence + N time slots) | One Schedule record per time slot, sharing the recurrence |
+| Exact time slot | `local_time` |
+| Range slot / preset | `window_start_local` + `window_end_local`; preset label under extensions |
 | Occurrence | Occurrence |
-| `unresolved` | `unresolved` |
-| `done` | `completed` |
-| `not_done` | `not_completed` |
+| `unresolved` / `completed` / `not_completed` | Same core vocabulary |
+| Status snapshot timestamps (`completed_at`, `status_marked_at`) | Latest status event's `effective_at_utc` / `recorded_at_utc` |
+| Status event history, corrections, clear-decision | StatusEvent records, including `status: "unresolved"` corrections |
 | Needs decision UI group | Derived view from unresolved prior local dates |
-| Browser/email reminder delivery | Intervention Profile |
+| Behavior title/description revisions | Definition History Profile |
+| Elapsed-time sessions | Time Tracking Profile |
+| Per-behavior reminder settings | Intervention rules (`data/intervention_rules.jsonl`) |
+| Browser/email reminder deliveries | Intervention records |
 | Occurrence note | Note attached to occurrence |
 | Export resolver | Bundle writer |
 
-Mapping rule: `done/not_done` are app-specific source terms. Public BehaviorLog records SHOULD use `completed/not_completed`.
+Mapping rules:
+
+- App-native status terms such as `done/not_done` are source terms. Public records use `completed/not_completed`.
+- App-native delivery state `pending` maps to `planned`. App field `scheduled_send_at` maps to `planned_for_utc`.
+- Sanitized delivery error text maps to `failure_reason`.
+- A nonnegative "remind N minutes before" offset maps to a negative `offset_minutes` on the intervention rule.
+- Display categories map to the closest canonical category; keep the display name in extensions rather than widening the canonical list.
+- When an app does not collect a required field such as `success_definition`, the writer MAY synthesize a neutral value, and SHOULD mark the record's `source.capture_method` accordingly so agents do not read producer boilerplate as user intent.
+- Schedule-slot fan-out: when one recurrence has several time slots, emit one Schedule per slot. Keep any parent grouping ID under extensions if round-tripping the grouping matters.
+- Category registries (user-defined category lists with ordering) stay app-side. The canonical `category` string plus extensions is the portable surface; a bundle does not carry empty categories.
 
 ## CSV
 

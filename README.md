@@ -5,7 +5,7 @@
 
 The core object is not a generic task. The core object is **adherence over time**: a behavior definition, a schedule, generated occurrences, explicit completion decisions, optional reminders, optional context, and declared metrics.
 
-This repository is a draft starter specification for `behaviorlog.bundle` `0.1.0-draft`.
+This repository is a draft starter specification for `behaviorlog.bundle` `0.2.0-draft`.
 
 ## Philosophy
 
@@ -35,11 +35,14 @@ example.behaviorlog/
     schedules.jsonl
     occurrences.jsonl
     status_events.jsonl
-    notes.jsonl                 # optional
-    interventions.jsonl         # optional profile
-    context_snapshots.jsonl     # optional profile
-    reviews.jsonl               # optional profile
-    derived_metrics.jsonl       # optional profile
+    notes.jsonl                       # optional
+    interventions.jsonl               # optional profile
+    intervention_rules.jsonl          # optional profile
+    behavior_definition_events.jsonl  # optional profile
+    time_sessions.jsonl               # optional profile
+    context_snapshots.jsonl           # optional profile
+    reviews.jsonl                     # optional profile
+    derived_metrics.jsonl             # optional profile
   csv/                          # optional human/migration views
   raw/                          # optional app-native exports
 ```
@@ -75,7 +78,9 @@ The core profile is enough to migrate and analyze basic adherence.
 
 Optional profiles add scoped data:
 
-- **Intervention Profile:** reminders, prompts, notification delivery, snoozes, suppressions, and burden.
+- **Intervention Profile:** reminders, prompts, notification delivery, snoozes, suppressions, burden, and the standing rules that generate them.
+- **Definition History Profile:** append-only behavior rename and redefinition events, so past occurrences stay interpretable.
+- **Time Tracking Profile:** start/stop elapsed-time sessions against occurrences, with durations always derived.
 - **Context Profile:** calendar availability, coarse place labels, activity state, mood/energy, and other explicitly exported context.
 - **Review Profile:** weekly/monthly reflections and adjustments.
 - **Analytics Profile:** precomputed metrics with manifest-declared formulas.

@@ -24,6 +24,18 @@ Use these questions to evaluate whether an agent correctly understands a Behavio
 4. Were any reminders suppressed because the occurrence was already resolved?
 5. What burden signals should be reported alongside reminder response rate?
 
+## Definition History Profile questions
+
+1. Which behaviors were renamed or redefined during the export period?
+2. Do any occurrences predate a definition change that alters how they should be interpreted?
+3. Does the latest definition event agree with the current behavior record?
+
+## Time Tracking Profile questions
+
+1. How much tracked time does each behavior have, counting only stopped sessions?
+2. Which occurrences have a session still running at export time, and were they excluded from totals?
+3. Which occurrences are marked completed but have no tracked time, and why is that not evidence of non-completion?
+
 ## Context Profile questions
 
 1. Which context values are coarse versus precise?

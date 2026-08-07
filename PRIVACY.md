@@ -18,10 +18,13 @@ Every bundle MUST include:
     "contains_context": false,
     "contains_raw_location": false,
     "contains_health_data": false,
-    "contains_ai_generated_content": false
+    "contains_ai_generated_content": false,
+    "contains_time_tracking": false
   }
 }
 ```
+
+`contains_time_tracking` is optional for writers that never export time sessions, and SHOULD be present and true whenever `data/time_sessions.jsonl` is included.
 
 ## Recommended export profiles
 
@@ -53,7 +56,10 @@ Recommended defaults:
 | Success definition | medium |
 | Status events | medium |
 | User notes | high |
+| Behavior definition history | high |
+| Time-tracking sessions | high |
 | Reminder delivery | medium |
+| Reminder failure reason | medium |
 | Reminder message content | high |
 | Coarse context labels | high |
 | Precise location | restricted |
@@ -65,6 +71,14 @@ Recommended defaults:
 Notes are valuable for agent interpretability but may contain private material. Writers SHOULD make notes toggleable in export UI.
 
 If notes are exported, agents MUST treat them as attributed context. They MUST NOT treat them as objective fact without qualification.
+
+## Definition history
+
+Old behavior titles and descriptions can carry context the user has since rewritten away: a diagnosis, a relationship, a habit they renamed for privacy. Writers SHOULD disclose that definition history is included by default in interoperable exports, and SHOULD allow excluding it in redacted profiles.
+
+## Time-tracking sessions
+
+Exact start/stop timestamps reveal when a person is awake, home, idle, or occupied, beyond what completion marks reveal. Time sessions MUST be export-opt-in. When included, set `contains_time_tracking: true` in the privacy declaration. For `analysis_safe` exports, consider exporting only derived per-occurrence totals as metrics instead of raw sessions.
 
 ## Context data
 

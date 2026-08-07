@@ -1,6 +1,6 @@
 {
   "format": "behaviorlog.bundle",
-  "schema_version": "0.1.0-draft",
+  "schema_version": "0.2.0-draft",
   "exported_at_utc": "2026-06-11T22:00:00Z",
   "producer": {
     "name": "SyntheticExample",
@@ -20,13 +20,16 @@
     "contains_context": true,
     "contains_raw_location": false,
     "contains_health_data": false,
-    "contains_ai_generated_content": false
+    "contains_ai_generated_content": false,
+    "contains_time_tracking": true
   },
   "profiles": [
     "core",
     "intervention",
     "context",
-    "analytics"
+    "analytics",
+    "definition_history",
+    "time_tracking"
   ],
   "rules": {
     "status_semantics": {
@@ -36,6 +39,7 @@
     },
     "unresolved_policy": "exclude_from_explicit_adherence",
     "day_boundary": "local_midnight",
+    "definition_history_policy": "event_sourced",
     "metric_rules": {
       "rule_explicit_adherence_rate_v1": {
         "formula": "completed / (completed + not_completed)",
@@ -92,7 +96,7 @@
       "media_type": "application/json",
       "schema_ref": null,
       "required": true,
-      "sha256": "75d899f9ed749f34cebc77bfef3e436ca6c2a9dd83846d1cd9bafdd813525049"
+      "sha256": "1e375dc3fa0e38112322080f9cd9c1b658f7b98bb39fb3421ea6fd0af51fc88a"
     },
     {
       "path": "README.md",
@@ -116,6 +120,13 @@
       "sha256": "d44b772b752b7862bdb96b8c9b9188d0cd9d31890cc0d766346e2cc109bce81c"
     },
     {
+      "path": "data/behavior_definition_events.jsonl",
+      "media_type": "application/jsonl",
+      "schema_ref": "#/$defs/BehaviorDefinitionEvent",
+      "required": false,
+      "sha256": "4923a46a56eea3f92cdc7f62a069c7e255e6077c1db657ec25605edf4174d047"
+    },
+    {
       "path": "data/context_snapshots.jsonl",
       "media_type": "application/jsonl",
       "schema_ref": "#/$defs/ContextSnapshot",
@@ -134,7 +145,14 @@
       "media_type": "application/jsonl",
       "schema_ref": "#/$defs/Intervention",
       "required": false,
-      "sha256": "61b17413afb4554259db8cc02f555d5701890b6c123a0ad8cfd4f604d9ae4134"
+      "sha256": "4945f9da3ff2b5dfbd5515aaf8b135526d20126589bb46110e54df03211e2921"
+    },
+    {
+      "path": "data/intervention_rules.jsonl",
+      "media_type": "application/jsonl",
+      "schema_ref": "#/$defs/InterventionRule",
+      "required": false,
+      "sha256": "db96e593952783aec642f149c73f805e4bb3cb4e4a5ffd4298bc4ba7dee38b19"
     },
     {
       "path": "data/occurrences.jsonl",
@@ -156,6 +174,13 @@
       "schema_ref": "#/$defs/StatusEvent",
       "required": true,
       "sha256": "8d840a422f5e76c77c436bd715dee363c6cf77fe7323a825720aa79658de922e"
+    },
+    {
+      "path": "data/time_sessions.jsonl",
+      "media_type": "application/jsonl",
+      "schema_ref": "#/$defs/TimeSession",
+      "required": false,
+      "sha256": "ea955ba508b712b04b6a1e3808a1c4e7839ea7fddf04abbc2c8ea188ddb022ee"
     }
   ]
 }

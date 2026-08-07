@@ -19,7 +19,8 @@ This repository defines the BehaviorLog Bundle standard. Treat `SPEC.md` as the 
 - Do not add `missed` to the core status vocabulary.
 - Do not treat `unresolved` as `not_completed`.
 - Do not make `skipped`, `snoozed`, or `cancelled` core statuses. Model them through reasons, occurrence state, or optional profiles.
-- Preserve the separation between behaviors, schedules, occurrences, status events, interventions, context, and derived metrics.
+- Preserve the separation between behaviors, schedules, occurrences, status events, interventions, intervention rules, definition events, time sessions, context, and derived metrics.
+- Keep definition events append-only and time-session durations derived, never stored.
 - Put unknown or vendor-specific data only under `extensions`.
 - Keep the core small; add adjacent concepts through profiles.
 - Use app-neutral terms in the standard. App-specific terms belong in mappings.

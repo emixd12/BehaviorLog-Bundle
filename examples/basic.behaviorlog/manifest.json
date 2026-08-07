@@ -1,6 +1,6 @@
 {
   "format": "behaviorlog.bundle",
-  "schema_version": "0.1.0-draft",
+  "schema_version": "0.2.0-draft",
   "exported_at_utc": "2026-06-11T22:00:00Z",
   "producer": {
     "name": "SyntheticExample",
@@ -23,9 +23,7 @@
     "contains_ai_generated_content": false
   },
   "profiles": [
-    "core",
-    "notes",
-    "csv-view"
+    "core"
   ],
   "rules": {
     "status_semantics": {
@@ -35,6 +33,7 @@
     },
     "unresolved_policy": "exclude_from_explicit_adherence",
     "day_boundary": "local_midnight",
+    "definition_history_policy": "untracked",
     "metric_rules": {
       "rule_explicit_adherence_rate_v1": {
         "formula": "completed / (completed + not_completed)",
@@ -91,7 +90,7 @@
       "media_type": "application/json",
       "schema_ref": null,
       "required": true,
-      "sha256": "75d899f9ed749f34cebc77bfef3e436ca6c2a9dd83846d1cd9bafdd813525049"
+      "sha256": "1e375dc3fa0e38112322080f9cd9c1b658f7b98bb39fb3421ea6fd0af51fc88a"
     },
     {
       "path": "README.md",
